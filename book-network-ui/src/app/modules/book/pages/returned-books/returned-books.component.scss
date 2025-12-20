@@ -1,0 +1,176 @@
+// Variables
+$primary-color: #2c3e50;
+$secondary-color: #3498db;
+$accent-color: #e74c3c;
+$light-bg: #f8f9fa;
+$card-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+$card-hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+
+i {
+  cursor: pointer;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+  color: white;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  border-radius: 0 0 10px 10px;
+}
+
+.page-title {
+  font-weight: 700;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.return-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: $card-shadow;
+  padding: 25px;
+  margin-bottom: 2rem;
+}
+
+.book-detail-row {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detail-label {
+  flex: 0 0 120px;
+  font-weight: 600;
+  color: $primary-color;
+}
+
+.detail-value {
+  flex: 1;
+  color: #555;
+}
+
+.rating-slider {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.form-range {
+  flex: 1;
+}
+
+.btn-action {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s;
+
+  i {
+    margin-right: 8px;
+  }
+}
+
+.books-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: $card-shadow;
+
+  thead {
+    background: linear-gradient(135deg, $secondary-color 0%, $primary-color 100%);
+    color: white;
+  }
+
+  th {
+    font-weight: 600;
+    padding: 15px;
+  }
+
+  td {
+    padding: 15px;
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: rgba(52, 152, 219, 0.05);
+    }
+  }
+}
+
+.action-icon {
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1.2rem;
+  padding: 8px;
+  border-radius: 50%;
+
+  &:hover {
+    transform: scale(1.2);
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.pagination {
+  margin-top: 2rem;
+}
+
+.page-link {
+  color: $primary-color;
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 0.75rem;
+
+  &:hover {
+    color: $secondary-color;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+  }
+}
+
+.page-item.active .page-link {
+  background-color: $secondary-color;
+  border-color: $secondary-color;
+  color: white;
+}
+
+.form-control:focus,
+.form-range:focus {
+  border-color: $secondary-color;
+  box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .book-detail-row {
+    flex-direction: column;
+  }
+
+  .detail-label {
+    flex: 1;
+    margin-bottom: 5px;
+  }
+
+  .rating-slider {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-action {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .books-table {
+    font-size: 0.9rem;
+
+    th, td {
+      padding: 10px;
+    }
+  }
+}

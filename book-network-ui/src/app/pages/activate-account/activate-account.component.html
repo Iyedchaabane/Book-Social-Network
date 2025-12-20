@@ -1,0 +1,71 @@
+<div class="activation-container">
+  <div class="activation-card">
+    <div class="activation-header">
+      <i class="fas fa-key activation-icon"></i>
+      <h2 *ngIf="context === 'activation'">Account Activation</h2>
+      <h2 *ngIf="context === 'reset'">Reset Password Verification</h2>
+
+      <p *ngIf="context === 'activation'">Enter the code sent to your email to activate your account.</p>
+      <p *ngIf="context === 'reset'">Enter the code sent to your email to reset your password.</p>
+    </div>
+
+    <div class="activation-content" *ngIf="submitted; else codeForm">
+      <div class="activation-message success" *ngIf="isOkay; else activationError">
+        <i class="fas fa-check-circle success-icon"></i>
+        <h2 *ngIf="context === 'activation'">Activation Successful!</h2>
+        <h2 *ngIf="context === 'reset'">Code Verified!</h2>
+        <p *ngIf="context === 'activation'">
+          Your account has been successfully activated. You can now login to your account.
+        </p>
+        <p *ngIf="context === 'reset'">
+          You can now reset your password. Please click the button below.
+        </p>
+
+        <!-- Bouton différent selon le contexte -->
+        <button class="btn btn-primary" *ngIf="context === 'activation'" routerLink="/login">
+          <i class="fas fa-sign-in-alt"></i> Go to Login
+        </button>
+        <button class="btn btn-primary" *ngIf="context === 'reset'" (click)="goToResetPassword()">
+          <i class="fas fa-key"></i> Reset Password
+        </button>
+      </div>
+
+      <ng-template #activationError>
+        <div class="activation-message error">
+          <i class="fas fa-exclamation-circle error-icon"></i>
+          <h2 *ngIf="context === 'activation'">Activation Failed!</h2>
+          <h2 *ngIf="context === 'reset'">Verification Failed!</h2>
+          <p>{{ message }}</p>
+          <button class="btn btn-primary" (click)="submitted = false">
+            <i class="fas fa-redo"></i> Try again
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+    <ng-template #codeForm>
+      <div class="activation-content">
+        <div class="code-form">
+          <h2>Type your code</h2>
+          <p class="instruction">Enter the 6-digit code sent to your email</p>
+
+          <div class="code-input-container">
+            <code-input [isCodeHidden]="false"
+                        [codeLength]="6"
+                        [code]="'number'"
+                        (codeCompleted)="onCodeCompleted($event)">
+            </code-input>
+          </div>
+
+          <div class="resend-container">
+            <p>Didn't receive the code? <a href="#" class="resend-link">Resend code</a></p>
+          </div>
+
+          <button class="btn btn-outline" routerLink="/login">
+            <i class="fas fa-arrow-left"></i> Back to Login
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>

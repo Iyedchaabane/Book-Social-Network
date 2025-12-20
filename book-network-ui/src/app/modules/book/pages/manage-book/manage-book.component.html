@@ -1,0 +1,123 @@
+<div class="manage-book-container">
+  <div class="manage-book-header">
+    <h2><i class="fas fa-book-open"></i> Manage My Book</h2>
+    <p class="subtitle">Add or edit your book details</p>
+  </div>
+
+  <div class="alert alert-danger" role="alert" *ngIf="errorMsg.length">
+    <div *ngFor="let msg of errorMsg" class="alert-message">
+      <i class="fas fa-exclamation-circle"></i> {{msg}}
+    </div>
+  </div>
+
+  <div class="manage-book-content">
+    <div class="image-section">
+      <div class="image-preview">
+        <img [src]="selectedPicture || 'https://picsum.photos/1900/800'" alt="Book cover preview" class="book-cover-preview">
+      </div>
+
+      <div class="file-upload">
+        <label for="formFile" class="upload-label">
+          <i class="fas fa-cloud-upload-alt"></i>
+          Choose Cover Image
+        </label>
+        <input
+          (change)="onFileSelected($event)"
+          class="form-control"
+          type="file"
+          id="formFile"
+          accept="image/*"
+        >
+        <p class="upload-hint">JPG, PNG or GIF - Max 5MB</p>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <form class="book-form">
+        <div class="form-group">
+          <label for="title" class="form-label">
+            <i class="fas fa-heading"></i> Title
+          </label>
+          <input
+            [(ngModel)]="bookRequest.title"
+            type="text"
+            class="form-control"
+            id="title"
+            name="title"
+            placeholder="Enter book title"
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="author" class="form-label">
+              <i class="fas fa-user"></i> Author Name
+            </label>
+            <input
+              [(ngModel)]="bookRequest.authorName"
+              type="text"
+              class="form-control"
+              id="author"
+              name="author"
+              placeholder="Author's full name"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="isbn" class="form-label">
+              <i class="fas fa-barcode"></i> ISBN
+            </label>
+            <input
+              [(ngModel)]="bookRequest.isbn"
+              type="text"
+              class="form-control"
+              id="isbn"
+              name="isbn"
+              placeholder="e.g., 978-3-16-148410-0"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="synopsis" class="form-label">
+            <i class="fas fa-align-left"></i> Synopsis
+          </label>
+          <textarea
+            [(ngModel)]="bookRequest.synopsis"
+            rows="5"
+            class="form-control"
+            id="synopsis"
+            name="synopsis"
+            placeholder="Describe your book..."
+          ></textarea>
+          <div class="character-count" *ngIf="bookRequest.synopsis">
+            {{ bookRequest.synopsis.length }}/500 characters
+          </div>
+        </div>
+
+        <div class="form-check">
+          <input
+            [(ngModel)]="bookRequest.shareable"
+            class="form-check-input"
+            type="checkbox"
+            id="shareable"
+            name="shareable"
+          >
+          <label class="form-check-label" for="shareable">
+            <i class="fas fa-share-alt"></i> Make this book shareable with other members
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button (click)="saveBook()" type="button" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Book
+          </button>
+          <a routerLink="/books/my-books" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

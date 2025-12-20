@@ -1,0 +1,41 @@
+.page-header {
+  background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+  color: white;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  border-radius: 0 0 10px 10px;
+}
+
+.page-title {
+  font-weight: 700;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.pagination {
+  margin: 2rem 0;
+}
+
+.page-link {
+  color: #2c3e50;
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.page-link:hover {
+  color: #3498db;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.page-item.active .page-link {
+  background-color: #3498db;
+  border-color: #3498db;
+  color: white;
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+  padding: 1rem 1.5rem;
+}

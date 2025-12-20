@@ -1,0 +1,101 @@
+<div class="book-details-container">
+  <!-- Book Details Card -->
+  <div class="book-details-card">
+    <div class="book-cover-section">
+      <img class="rounded book-cover" width="100%" height="100%" [src]="bookCover" alt="{{ book.title }}">
+    </div>
+
+    <div class="book-info-section">
+      <h1 class="book-title">
+        <i class="fa-solid fa-book"></i> {{ book.title }}
+      </h1>
+
+      <div class="book-meta">
+        <div class="meta-item">
+          <i class="fa-solid fa-user"></i>
+          <span class="meta-label">Author:</span>
+          <span class="meta-value">{{ book.authorName }}</span>
+        </div>
+
+        <div class="meta-item">
+          <i class="fas fa-code"></i>
+          <span class="meta-label">ISBN:</span>
+          <span class="meta-value">{{ book.isbn }}</span>
+        </div>
+
+        <div class="meta-item">
+          <i class="fas fa-user-circle"></i>
+          <span class="meta-label">Owner:</span>
+          <span class="meta-value">{{ book.owner }}</span>
+        </div>
+      </div>
+
+      <div class="book-rating">
+        <app-rating [rating]="book.rate || 0"></app-rating>
+        <span class="rating-value">{{ book.rate }}</span>
+        <span class="feedback-count">({{ feedbacks.totalElements || 0 }} feedbacks)</span>
+      </div>
+
+      <div class="book-synopsis">
+        <h3>Synopsis</h3>
+        <p>{{ book.synopsis }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedbacks Section -->
+  <div class="feedbacks-section">
+    <h2 class="section-title">
+      <i class="fas fa-comments"></i> Reader Feedbacks
+      <span class="badge">{{ feedbacks.totalElements || 0 }}</span>
+    </h2>
+
+    <div class="no-feedbacks" *ngIf="!feedbacks.content || feedbacks.content.length === 0">
+      <i class="fas fa-comment-slash"></i>
+      <p>No feedbacks yet. Be the first to share your thoughts!</p>
+    </div>
+
+    <div class="feedbacks-list" *ngIf="feedbacks.content && feedbacks.content.length > 0">
+      <div *ngFor="let feedback of feedbacks.content" class="feedback-card">
+        <div class="feedback-header">
+          <div class="feedback-rating">
+            <app-rating [rating]="feedback.note || 0"></app-rating>
+            <strong class="rating-value">{{ feedback.note }}</strong>
+          </div>
+        </div>
+        <p class="feedback-comment">{{ feedback.comment }}</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="pages.length > 1 " class="pagination-container">
+      <nav aria-label="Feedback pagination">
+        <ul class="pagination">
+          <li class="page-item" [class.disabled]="page === 0">
+            <a class="page-link" (click)="goToFirstPage()" aria-label="First">
+              <i class="fa-solid fa-angles-left"></i>
+            </a>
+          </li>
+          <li class="page-item" [class.disabled]="page === 0">
+            <a class="page-link" (click)="goToPreviousPage()" aria-label="Previous">
+              <i class="fa-solid fa-angle-left"></i>
+            </a>
+          </li>
+          <li class="page-item" *ngFor="let pageIndex of pages" [class.active]="page === pageIndex">
+            <a class="page-link" (click)="gotToPage(pageIndex)">{{ pageIndex + 1 }}</a>
+          </li>
+          <li class="page-item" [class.disabled]="isLastPage">
+            <a class="page-link" (click)="goToNextPage()" aria-label="Next">
+              <i class="fa-solid fa-angle-right"></i>
+            </a>
+          </li>
+          <li class="page-item" [class.disabled]="isLastPage">
+            <a class="page-link" (click)="goToLastPage()" aria-label="Last">
+              <i class="fa-solid fa-angles-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
