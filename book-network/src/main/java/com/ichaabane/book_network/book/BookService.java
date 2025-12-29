@@ -179,6 +179,13 @@ public class BookService {
             throw new OperationNotPermittedException("The requested book is already borrowed");
         }
 
+        boolean isBorrowedBySomeone =
+                bookTransactionHistoryRepository.existsByBookIdAndReturnedFalse(bookId);
+
+        if (isBorrowedBySomeone) {
+            throw new OperationNotPermittedException("This book is already borrowed by another user");
+        }
+
         BookTransactionHistory bookTransactionHistory =
                 BookTransactionHistory.builder()
                         .user(user)
@@ -279,6 +286,12 @@ public class BookService {
 
         if (Objects.equals(book.getOwner().getId(), user.getId())) {
             throw new OperationNotPermittedException("You cannot reserve a book that you do own");
+        }
+
+        final boolean isAlreadyBorrowed = bookTransactionHistoryRepository.isAlreadyBorrowedByUser(bookId, user.getId());
+
+        if (isAlreadyBorrowed) {
+            throw new OperationNotPermittedException("you already borrowed this book so you can not add to waiting list");
         }
 
         if (reservationRepository.existsByBookAndUser(book, user)) {
