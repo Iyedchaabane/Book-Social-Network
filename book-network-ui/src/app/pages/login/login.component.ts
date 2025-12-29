@@ -4,6 +4,7 @@ import {Router} from "@angular/router";
 import {AuthenticationService} from "../../services/services/authentication.service";
 import {error} from "@angular/compiler-cli/src/transformers/util";
 import {TokenService} from "../../services/token/token.service";
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,8 @@ export class LoginComponent {
   constructor(
     private router: Router,
     private authService: AuthenticationService,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private toastr: ToastrService
   ) {
   }
 
@@ -32,14 +34,20 @@ export class LoginComponent {
         this.router.navigate(['books']);
       },
       error: (err) => {
-        // console.error(err)
-        if (err.error.validationErrors) {
-          this.errorMsg = err.error.validationErrors;
+        if (err.status === 0) {
+          this.toastr.error('Server is unreachable', 'Connection error');
+          return;
+        }
+        if (err.error?.validationErrors) {
+          err.error.validationErrors.forEach((msg: string) =>
+            this.toastr.error(msg, 'Validation error')
+          );
+        } else if (err.error?.error) {
+          this.toastr.error(err.error.error, 'Authentication failed');
         } else {
-          this.errorMsg.push(err.error.error);
+          this.toastr.error('Unexpected error occurred');
         }
       }
-
     })
 
   }

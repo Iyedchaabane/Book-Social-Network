@@ -119,3 +119,31 @@ i {
     height: 200px;
   }
 }
+
+// Add hover effect for icons
+.card-footer {
+  i {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:hover {
+      transform: scale(1.15);
+      opacity: 0.8;
+    }
+  }
+}
+
+// Add hover effect for icons
+.card-footer {
+  i {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:hover {
+      transform: scale(1.15);
+      opacity: 0.8;
+    }
+  }
+}

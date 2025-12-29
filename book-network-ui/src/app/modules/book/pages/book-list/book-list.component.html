@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="container">
-    <h1 class="page-title">Books list</h1>
-    <p class="mb-0 text-muted">Discover our collection of programming books</p>
+    <h1 class="page-title">Book Collection</h1>
+    <p class="mb-0 text-muted">Access a vibrant library of books shared by readers worldwide</p>
   </div>
 </div>
 
@@ -28,7 +28,15 @@
     </div>
   </div>
 
-  <nav *ngIf="!isSearching && pages.length > 1 " aria-label="Page navigation" class="mt-4">
+  <!-- Empty State -->
+  <div *ngIf="!isSearching && filteredBooks.length === 0" class="empty-state text-center py-5">
+    <i class="fas fa-book fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">No Books Available</h3>
+    <p class="text-secondary">There are no books in the library at the moment. Check back soon for new additions!</p>
+  </div>
+
+  <!-- Pagination -->
+  <nav *ngIf="!isSearching && pages.length > 1" aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
       <li class="page-item">
         <a (click)="goToFirstPage()" class="page-link" href="javascript:void(0)" [class.disabled]="page === 0">

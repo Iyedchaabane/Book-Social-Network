@@ -16,7 +16,7 @@ export class MyBooksComponent implements OnInit, OnDestroy {
   allBooks: BookResponse[] = [];
   filteredBooks: BookResponse[] = [];
   page = 0;
-  size = 6;
+  size = 3;
   pages: any = [];
   isSearching = false;
   private searchSub!: Subscription;

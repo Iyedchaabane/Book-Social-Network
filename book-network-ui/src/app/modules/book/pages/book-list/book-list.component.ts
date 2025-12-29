@@ -17,7 +17,7 @@ export class BookListComponent implements OnInit, OnDestroy {
   filteredBooks: BookResponse[] = [];
   allBooks: BookResponse[] = []; // Store all books from all pages
   page = 0;
-  size = 6;
+  size = 3;
   pages: any = [];
   message = '';
   level: 'success' |'error' = 'success';

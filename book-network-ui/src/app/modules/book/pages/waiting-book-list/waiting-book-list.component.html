@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="container">
     <h1 class="page-title">Reserved Books</h1>
-    <p class="mb-0 text-muted">List of books you have reserved.</p>
+    <p class="mb-0 text-muted">Your reading wishlist — books you're excited to get your hands on</p>
   </div>
 </div>
 
@@ -28,12 +28,15 @@
     </div>
   </div>
 
-  <div *ngIf="!isSearching && pages.length === 0" class="text-center my-5">
-    <i class="fa-solid fa-circle-exclamation fa-2x text-muted mb-2"></i>
-    <p class="text-muted">No reserved books available.</p>
+  <!-- Empty State -->
+  <div *ngIf="!isSearching && pages.length === 0" class="empty-state text-center py-5">
+    <i class="fas fa-bookmark fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">No Reserved Books</h3>
+    <p class="text-secondary">You haven't reserved any books yet. Start exploring and reserve your favorite books!</p>
   </div>
 
-  <nav *ngIf="!isSearching && pages.length > 1 " aria-label="Page navigation" class="mt-4">
+  <!-- Pagination -->
+  <nav *ngIf="!isSearching && pages.length > 1" aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
       <li class="page-item">
         <a (click)="goToFirstPage()" class="page-link" href="javascript:void(0)" [class.disabled]="page === 0">

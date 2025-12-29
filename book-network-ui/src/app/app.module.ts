@@ -37,7 +37,7 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
       newestOnTop: true,
       tapToDismiss: true,
       positionClass: 'toast-bottom-right',
-      timeOut: 8000
+      timeOut: 5000
     })
   ],
   providers: [

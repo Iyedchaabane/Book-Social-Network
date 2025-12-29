@@ -22,8 +22,6 @@ export class MenuComponent implements OnInit {
   notifications: Array<NotificationResponse> = [];
   searchQuery: string = '';
 
-
-
   constructor(
     private tokenService: TokenService,
     private toastService: ToastrService,
@@ -56,27 +54,72 @@ export class MenuComponent implements OnInit {
                 const notification: Notification = JSON.parse(message.body);
                 this.notifications.unshift(notification);
                 this.unreadNotificationCount++;
+
+                // 🔔 Afficher le toaster pour la nouvelle notification
+                this.showNotificationToast(notification);
               }
             );
           }
+        },
+        (error: any) => {
+          console.error('WebSocket connection error:', error);
+          this.toastService.error('Failed to connect to notification service', 'Connection Error');
         }
       );
     }
   }
 
-  private navigationHandler() {
-    const linkColor = document.querySelectorAll('.nav-link');
-    linkColor.forEach(link => {
-      if(window.location.href.endsWith(link.getAttribute('href') || '')) {
-        link.classList.add('active');
-      }
-      link.addEventListener('click', () => {
-        linkColor.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-      });
-    });
+  /**
+   * Affiche un toaster selon le type de notification
+   */
+  private showNotificationToast(notification: Notification): void {
+    const title = this.getNotificationTitle(notification.status);
+    const message = notification.message || 'You have a new notification';
+
+    switch (notification.status) {
+      case 'BORROWED':
+        this.toastService.info(message, title);
+        break;
+
+      case 'RETURNED':
+        this.toastService.warning(message, title);
+        break;
+
+      case 'RETURN_APPROVED':
+        this.toastService.success(message, title);
+        break;
+
+      default:
+        this.toastService.show(message, title);
+        break;
+    }
   }
+
+  /**
+   * Retourne un titre approprié selon le statut
+   */
+  private getNotificationTitle(status?: string): string {
+    switch (status) {
+      case 'BORROWED':
+        return '📚 Book Borrowed';
+      case 'RETURNED':
+        return '📖 Book Returned';
+      case 'RETURN_APPROVED':
+        return '✅ Return Approved';
+      default:
+        return '🔔 New Notification';
+    }
+  }
+
   logout() {
+    // Déconnecter WebSocket avant de logout
+    if (this.socketClient && this.socketClient.connected) {
+      if (this.notificationSubscription) {
+        this.notificationSubscription.unsubscribe();
+      }
+      this.socketClient.disconnect();
+    }
+
     localStorage.removeItem('token');
     window.location.reload();
   }
@@ -103,10 +146,21 @@ export class MenuComponent implements OnInit {
     this.notificationService.markAllAsRead().subscribe(() => {
       this.notifications.forEach(n => n.read = true);
       this.updateUnreadCount();
+      this.toastService.success('All notifications marked as read', 'Success');
     });
   }
 
   private updateUnreadCount() {
     this.unreadNotificationCount = this.notifications.filter(n => !n.read).length;
+  }
+
+  ngOnDestroy(): void {
+    // Nettoyer la connexion WebSocket
+    if (this.socketClient && this.socketClient.connected) {
+      if (this.notificationSubscription) {
+        this.notificationSubscription.unsubscribe();
+      }
+      this.socketClient.disconnect();
+    }
   }
 }
