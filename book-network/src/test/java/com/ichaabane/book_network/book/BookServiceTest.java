@@ -1,13 +1,16 @@
 package com.ichaabane.book_network.book;
 
-import com.ichaabane.book_network.exception.OperationNotPermittedException;
-import com.ichaabane.book_network.history.BookTransactionHistory;
-import com.ichaabane.book_network.history.BookTransactionHistoryRepository;
-import com.ichaabane.book_network.notification.NotificationService;
-import com.ichaabane.book_network.notification.NotificationStatus;
-import com.ichaabane.book_network.reservation.BookReservation;
-import com.ichaabane.book_network.reservation.BookReservationRepository;
-import com.ichaabane.book_network.user.User;
+import com.ichaabane.book_network.application.service.BookService;
+import com.ichaabane.book_network.application.service.NotificationService;
+import com.ichaabane.book_network.domain.enums.NotificationStatus;
+import com.ichaabane.book_network.domain.exception.OperationNotPermittedException;
+import com.ichaabane.book_network.domain.model.Book;
+import com.ichaabane.book_network.domain.model.BookReservation;
+import com.ichaabane.book_network.domain.model.BookTransactionHistory;
+import com.ichaabane.book_network.domain.model.User;
+import com.ichaabane.book_network.domain.repository.BookRepository;
+import com.ichaabane.book_network.domain.repository.BookReservationRepository;
+import com.ichaabane.book_network.domain.repository.BookTransactionHistoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

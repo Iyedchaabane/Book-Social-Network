@@ -1,7 +1,7 @@
 package com.ichaabane.book_network;
 
-import com.ichaabane.book_network.role.Role;
-import com.ichaabane.book_network.role.RoleRepository;
+import com.ichaabane.book_network.domain.model.Role;
+import com.ichaabane.book_network.domain.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
