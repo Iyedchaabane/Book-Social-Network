@@ -39,6 +39,9 @@ import static com.ichaabane.book_network.domain.enums.NotificationStatus.*;
 @Slf4j
 public class BookService {
 
+    private static final String NO_BOOK_FOUND_PREFIX = "No book found with the ID : ";
+    private static final String CREATED_DATE = "createdDate";
+
     private final BookRepository bookRepository;
     private final BookTransactionHistoryRepository transactionHistoryRepository;
     private final BookMapper bookMapper;
@@ -70,12 +73,12 @@ public class BookService {
     public BookResponse findBookById(Integer bookId) {
         return bookRepository.findById(bookId)
                 .map(bookMapper::toBookResponse)
-                .orElseThrow(() -> new EntityNotFoundException("No book found with the ID : " + bookId));
+                .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
     }
 
     public PageResponse<BookResponse> findAllBooks(int page, int size, Authentication connectedUser) {
         User user = ((User) connectedUser.getPrincipal());
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(CREATED_DATE).descending());
         Page<Book> books = bookRepository.findAllDisplayableBooks(pageable, user.getId());
         List<BookResponse> bookResponses = books.stream()
                 .map(bookMapper::toBookResponse)
@@ -93,7 +96,7 @@ public class BookService {
 
     public PageResponse<BookResponse> findAllBooksByOwner(int page, int size, Authentication connectedUser) {
         User user = ((User) connectedUser.getPrincipal());
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(CREATED_DATE).descending());
         Page<Book> books = bookRepository.findAll(withOwnerId(user.getId()), pageable);
         List<BookResponse> bookResponses = books.stream()
                 .map(bookMapper::toBookResponse)
@@ -111,7 +114,7 @@ public class BookService {
 
     public PageResponse<BorrowedBookResponse> findAllBorrowedBooks(int page, int size, Authentication connectedUser) {
         User user = ((User) connectedUser.getPrincipal());
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(CREATED_DATE).descending());
         Page<BookTransactionHistory> allBorrowedBooks = transactionHistoryRepository.findAllBorrowedBooks(pageable, user.getId());
         List<BorrowedBookResponse> bookResponses = allBorrowedBooks.stream()
                 .map(bookMapper::toBorrowedBookResponse)
@@ -129,7 +132,7 @@ public class BookService {
 
     public PageResponse<BorrowedBookResponse> findAllReturnedBooks(int page, int size, Authentication connectedUser) {
         User user = ((User) connectedUser.getPrincipal());
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(CREATED_DATE).descending());
         Page<BookTransactionHistory> allBorrowedBooks = transactionHistoryRepository.findAllReturnedBooks(pageable, user.getId());
         List<BorrowedBookResponse> bookResponses = allBorrowedBooks.stream()
                 .map(bookMapper::toBorrowedBookResponse)
@@ -147,7 +150,7 @@ public class BookService {
 
     public Integer updateShareableStatus(Integer bookId, Authentication connectedUser) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("No book found with the ID : " + bookId));
+            .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
         User user = ((User) connectedUser.getPrincipal());
         if (!Objects.equals(book.getOwner().getId(), user.getId())) {
             throw new OperationNotPermittedException("You cannot update others book shareable status");
@@ -159,7 +162,7 @@ public class BookService {
 
     public Integer updateArchivedStatus(Integer bookId, Authentication connectedUser) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("No book found with the ID : " + bookId));
+            .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
         User user = ((User) connectedUser.getPrincipal());
         if (!Objects.equals(book.getOwner().getId(), user.getId())) {
             throw new OperationNotPermittedException("You cannot update others book archived status");
@@ -273,7 +276,7 @@ public class BookService {
         if (file == null || file.isEmpty()) return;
 
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("No book found with the ID : " + bookId));
+            .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
         User user = ((User) connectedUser.getPrincipal());
         var bookCover = fileStorageService.saveFile(file, user.getId());
         log.info(bookCover);
@@ -346,7 +349,7 @@ public class BookService {
     public PageResponse<BookResponse> getUserReservations(int page, int size, Authentication connectedUser) {
         User user = (User) connectedUser.getPrincipal();
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(CREATED_DATE).descending());
         Page<BookReservation> reservationsPage =
                 reservationRepository.findAllByUserId(user.getId(), pageable);
 

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ichaabane.book_network.domain.repository.NotificationRepository;
+import com.ichaabane.book_network.domain.exception.OperationNotPermittedException;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -61,10 +63,10 @@ public class NotificationService {
      */
     public NotificationResponse markAsRead(Integer notificationId, User user) {
         Notification notif = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
 
         if (!notif.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Not allowed to update this notification");
+            throw new OperationNotPermittedException("Not allowed to update this notification");
         }
 
         notif.setRead(true);
