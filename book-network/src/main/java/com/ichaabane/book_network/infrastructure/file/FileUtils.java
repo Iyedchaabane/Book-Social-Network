@@ -10,9 +10,15 @@ import java.nio.file.Path;
 
 @Slf4j
 public class FileUtils {
+
+    // Private constructor to hide the implicit public constructor
+    private FileUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static byte[] readFileFromLocation(String fileUrl) {
         if (StringUtils.isBlank(fileUrl)) {
-            return null;
+            return new byte[0];
         }
         try {
             Path path = new File(fileUrl).toPath();
@@ -20,6 +26,6 @@ public class FileUtils {
         } catch (IOException e) {
             log.warn("No file found at {}", fileUrl);
         }
-        return null;
+        return new byte[0];
     }
 }
