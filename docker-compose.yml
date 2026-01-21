@@ -5,27 +5,54 @@ services:
     environment:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
-      PGDATA: /var/lib/postgresql/data
       POSTGRES_DB: book_social_network
     volumes:
-      - postgres:/data/postgres
+      - postgres_data:/var/lib/postgresql
     ports:
       - 5432:5432
     networks:
       - spring-demo
+    healthcheck:
+      # On simplifie la commande pour juste vérifier si le serveur accepte les connexions
+      test: ["CMD-SHELL", "pg_isready -U username"]
+      interval: 10s      # On attend 10s entre chaque test
+      timeout: 5s
+      retries: 5
+      start_period: 15s  # TRES IMPORTANT : Donne 15s à Postgres pour s'initialiser avant de commencer à tester
     restart: unless-stopped
 
-  mail-dev:
-    container_name: mail-dev-bsn
-    image: maildev/maildev
+  bsn-api:
+    container_name: bsn-api
+    image: bsn/bsn:1.0.0
     ports:
-      - 1080:1080
-      - 1025:1025
+      - 8088:8088
+    networks:
+      - spring-demo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-sql-bsn:5432/book_social_network
+      - SPRING_PROFILES_ACTIVE=dev
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - BREVO_SENDER_EMAIL=${BREVO_SENDER_EMAIL}
+      - BREVO_SENDER_NAME=${BREVO_SENDER_NAME}
+    restart: on-failure 
+
+  bsn-ui:
+    container_name: bsn-ui
+    image: bsn/bsn-ui:1.0.0
+    ports:
+      - 8080:80
+    networks:
+      - spring-demo
+    depends_on:
+      - bsn-api    
 
 networks:
   spring-demo:
     driver: bridge
 
 volumes:
-  postgres:
+  postgres_data:
     driver: local
