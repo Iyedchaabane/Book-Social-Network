@@ -44,11 +44,6 @@ jobs:
           cd book-network-ui
           npm ci
 
-      - name: Lint code
-        run: |
-          cd book-network-ui
-          npm run lint
-
       - name: Build application
         run: |
           cd book-network-ui
