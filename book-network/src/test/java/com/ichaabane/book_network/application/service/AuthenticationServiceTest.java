@@ -14,7 +14,6 @@ import com.ichaabane.book_network.domain.repository.TokenRepository;
 import com.ichaabane.book_network.domain.repository.UserRepository;
 import com.ichaabane.book_network.infrastructure.email.EmailTemplateName;
 import com.ichaabane.book_network.infrastructure.security.JwtService;
-import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,6 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestClientException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -127,7 +127,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait créer un utilisateur avec succès")
-        void shouldRegisterUserSuccessfully() throws MessagingException {
+        void shouldRegisterUserSuccessfully() {
             // Given
             RegistrationRequest request = RegistrationRequest.builder()
                     .firstname("Jane")
@@ -171,7 +171,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait échouer si l'email existe déjà")
-        void shouldFailWhenEmailAlreadyExists() throws MessagingException {
+        void shouldFailWhenEmailAlreadyExists() {
             // Given
             RegistrationRequest request = RegistrationRequest.builder()
                     .firstname("John")
@@ -215,7 +215,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait propager l'exception si l'envoi d'email échoue")
-        void shouldPropagateExceptionWhenEmailFails() throws MessagingException {
+        void shouldPropagateExceptionWhenEmailFails() {
             // Given
             RegistrationRequest request = RegistrationRequest.builder()
                     .firstname("Jane")
@@ -230,12 +230,12 @@ class AuthenticationServiceTest {
             given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
             given(tokenService.generateAndSaveActivationToken(any(User.class), eq(ACCOUNT_ACTIVATION)))
                     .willReturn("123456");
-            willThrow(new MessagingException("SMTP error"))
+            willThrow(new RestClientException("SMTP error"))
                     .given(emailService).sendEmail(anyString(), anyString(), any(), anyString(), anyString(), anyString());
 
             // When / Then
             assertThatThrownBy(() -> authenticationService.register(request))
-                    .isInstanceOf(MessagingException.class)
+                    .isInstanceOf(RestClientException.class)
                     .hasMessageContaining("SMTP error");
 
             then(tokenService).should().deleteToken("123456");
@@ -248,7 +248,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait activer le compte avec un token valide")
-        void shouldActivateAccountWithValidToken() throws MessagingException {
+        void shouldActivateAccountWithValidToken() {
             // Given
             String code = "123456";
             testUser.setEnabled(false);
@@ -290,7 +290,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait renvoyer un email si le token est expiré")
-        void shouldResendEmailWhenTokenExpired() throws MessagingException {
+        void shouldResendEmailWhenTokenExpired() {
             // Given
             String code = "123456";
             Token expiredToken = Token.builder()
@@ -397,7 +397,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait envoyer un email de réinitialisation")
-        void shouldSendPasswordResetEmail() throws MessagingException {
+        void shouldSendPasswordResetEmail() {
             // Given
             String email = "john.doe@test.com";
             given(userRepository.findByEmail(email)).willReturn(Optional.of(testUser));
@@ -421,7 +421,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait échouer si l'utilisateur n'existe pas")
-        void shouldFailWhenUserNotFound() throws MessagingException {
+        void shouldFailWhenUserNotFound() {
             // Given
             String email = "unknown@test.com";
             given(userRepository.findByEmail(email)).willReturn(Optional.empty());
@@ -638,7 +638,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait créer un utilisateur et envoyer un email de configuration")
-        void shouldCreateUserSuccessfully() throws MessagingException {
+        void shouldCreateUserSuccessfully() {
             // Given
             UserRequest request = new UserRequest(
                     "Alice",
@@ -712,7 +712,7 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait envoyer un email de validation avec succès")
-        void shouldSendValidationEmailSuccessfully() throws MessagingException {
+        void shouldSendValidationEmailSuccessfully() {
             // Given
             given(tokenService.generateAndSaveActivationToken(testUser, ACCOUNT_ACTIVATION))
                     .willReturn("123456");
@@ -735,16 +735,16 @@ class AuthenticationServiceTest {
 
         @Test
         @DisplayName("Devrait nettoyer le token si l'envoi d'email échoue")
-        void shouldCleanupTokenWhenEmailFails() throws MessagingException {
+        void shouldCleanupTokenWhenEmailFails() {
             // Given
             given(tokenService.generateAndSaveActivationToken(testUser, ACCOUNT_ACTIVATION))
                     .willReturn("123456");
-            willThrow(new MessagingException("Email server down"))
+            willThrow(new RestClientException("Email server down"))
                     .given(emailService).sendEmail(anyString(), anyString(), any(), anyString(), anyString(), anyString());
 
             // When / Then
             assertThatThrownBy(() -> authenticationService.sendValidationEmail(testUser))
-                    .isInstanceOf(MessagingException.class)
+                    .isInstanceOf(RestClientException.class)
                     .hasMessageContaining("Email server down");
 
             then(tokenService).should().deleteToken("123456");

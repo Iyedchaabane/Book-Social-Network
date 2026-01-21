@@ -15,7 +15,6 @@ import com.ichaabane.book_network.domain.exception.*;
 import com.ichaabane.book_network.domain.repository.RoleRepository;
 import com.ichaabane.book_network.infrastructure.security.JwtService;
 import jakarta.annotation.PostConstruct;
-import jakarta.mail.MessagingException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +63,7 @@ public class AuthenticationService {
     private String addUrl;
 
 //    @Transactional
-    public void register(RegistrationRequest registrationRequest) throws MessagingException {
+    public void register(RegistrationRequest registrationRequest) {
         if (userRepository.existsByEmail(registrationRequest.getEmail())) {
             throw new OperationNotPermittedException("The email address already exists. Please use a different one.");
         }
@@ -90,7 +89,7 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void activateAccount(String code) throws MessagingException {
+    public void activateAccount(String code) {
         var validToken = tokenRepository.findFirstByTokenAndTypeOrderByCreatedAtDesc(code, ACCOUNT_ACTIVATION)
                 .orElseThrow(() -> {
                     log.warn("Invalid activation token: {}", code);
@@ -117,7 +116,7 @@ public class AuthenticationService {
         log.info("Account successfully activated for user: {}", user.getEmail());
     }
 
-    public void sendValidationEmail(User user) throws MessagingException {
+    public void sendValidationEmail(User user) {
         String newToken = null;
         try {
             newToken = tokenService.generateAndSaveActivationToken(user, ACCOUNT_ACTIVATION);
@@ -130,7 +129,7 @@ public class AuthenticationService {
                     "Account activation"
             );
             log.info("Activation email sent to {}", user.getEmail());
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Email failed for {}", user.getEmail(), e);
             if (newToken != null) {
                 tokenService.deleteToken(newToken); // Nettoyage compensatoire
@@ -159,7 +158,7 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void forgotPassword(String email) throws MessagingException {
+    public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("No user found with email: {}", email);
@@ -229,7 +228,7 @@ public class AuthenticationService {
         log.info("Reset code successfully verified for user: {}", resetToken.getUser().getEmail());
     }
 
-    public Integer createUser(UserRequest request) throws MessagingException {
+    public Integer createUser(UserRequest request) {
         var userRole = roleRepository.findByName("USER")
                 .orElseThrow( () -> {
                     log.error("USER role not found in the database");

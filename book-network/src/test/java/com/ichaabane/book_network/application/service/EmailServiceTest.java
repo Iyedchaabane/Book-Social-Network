@@ -1,10 +1,7 @@
 package com.ichaabane.book_network.application.service;
 
 import com.ichaabane.book_network.infrastructure.email.EmailTemplateName;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,12 +9,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,40 +31,47 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 
 /**
- * Tests unitaires pour EmailService.
+ * Tests unitaires pour EmailService avec Brevo.
  * 
- * Note: EmailService utilise JavaMailSender et SpringTemplateEngine qui sont des frameworks externes.
- * Nous testons uniquement la logique métier (paramètres, gestion des templates, etc.).
+ * Note: EmailService utilise RestTemplate pour appeler l'API Brevo et SpringTemplateEngine pour les templates.
+ * Nous testons uniquement la logique métier (paramètres, gestion des templates, construction de la requête API).
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@DisplayName("EmailService - Tests unitaires")
+@DisplayName("EmailService - Tests unitaires (Brevo)")
 class EmailServiceTest {
-
-    @Mock
-    private JavaMailSender mailSender;
 
     @Mock
     private SpringTemplateEngine templateEngine;
 
     @Mock
-    private MimeMessage mimeMessage;
+    private RestTemplate restTemplate;
 
-    @InjectMocks
     private EmailService emailService;
+
+    private static final String TEST_API_KEY = "test-api-key-12345";
+    private static final String TEST_SENDER_EMAIL = "noreply@test.com";
+    private static final String TEST_SENDER_NAME = "Test Application";
 
     @BeforeEach
     void setUp() {
-        given(mailSender.createMimeMessage()).willReturn(mimeMessage);
+        // Manually construct EmailService with mocked dependencies
+        emailService = new EmailService(templateEngine);
+        
+        // Inject @Value properties and RestTemplate using ReflectionTestUtils
+        ReflectionTestUtils.setField(emailService, "brevoApiKey", TEST_API_KEY);
+        ReflectionTestUtils.setField(emailService, "senderEmail", TEST_SENDER_EMAIL);
+        ReflectionTestUtils.setField(emailService, "senderName", TEST_SENDER_NAME);
+        ReflectionTestUtils.setField(emailService, "restTemplate", restTemplate);
     }
 
     @Nested
-    @DisplayName("sendEmail() - Envoi d'emails")
+    @DisplayName("sendEmail() - Envoi d'emails via Brevo")
     class SendEmailTests {
 
         @Test
         @DisplayName("Devrait envoyer un email avec template personnalisé")
-        void shouldSendEmailWithCustomTemplate() throws MessagingException {
+        void shouldSendEmailWithCustomTemplate() {
             // Given
             String to = "test@example.com";
             String username = "John Doe";
@@ -70,14 +82,13 @@ class EmailServiceTest {
 
             given(templateEngine.process(eq("activate_account"), any(Context.class)))
                     .willReturn("<html>Email content</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail(to, username, template, confirmationUrl, activationCode, subject);
 
             // Then
-            then(mailSender).should().send(mimeMessage);
-            
             ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
             then(templateEngine).should().process(eq("activate_account"), contextCaptor.capture());
 
@@ -86,11 +97,43 @@ class EmailServiceTest {
             assertThat(capturedContext.getVariable("username")).isEqualTo(username);
             assertThat(capturedContext.getVariable("confirmationUrl")).isEqualTo(confirmationUrl);
             assertThat(capturedContext.getVariable("activationCode")).isEqualTo(activationCode);
+
+            // Vérifier l'appel à l'API Brevo
+            ArgumentCaptor<HttpEntity> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+            then(restTemplate).should().postForEntity(
+                eq("https://api.brevo.com/v3/smtp/email"),
+                httpEntityCaptor.capture(),
+                eq(String.class)
+            );
+
+            // Vérifier les headers
+            HttpEntity<?> capturedEntity = httpEntityCaptor.getValue();
+            assertThat(capturedEntity.getHeaders().get("api-key")).containsExactly(TEST_API_KEY);
+            assertThat(capturedEntity.getHeaders().getContentType().toString()).contains("application/json");
+
+            // Vérifier le body de la requête
+            @SuppressWarnings("unchecked")
+            Map<String, Object> requestBody = (Map<String, Object>) capturedEntity.getBody();
+            assertThat(requestBody).isNotNull();
+            
+            @SuppressWarnings("unchecked")
+            Map<String, String> sender = (Map<String, String>) requestBody.get("sender");
+            assertThat(sender.get("email")).isEqualTo(TEST_SENDER_EMAIL);
+            assertThat(sender.get("name")).isEqualTo(TEST_SENDER_NAME);
+
+            @SuppressWarnings("unchecked")
+            Map<String, String>[] recipients = (Map<String, String>[]) requestBody.get("to");
+            assertThat(recipients).hasSize(1);
+            assertThat(recipients[0].get("email")).isEqualTo(to);
+            assertThat(recipients[0].get("name")).isEqualTo(username);
+
+            assertThat(requestBody.get("subject")).isEqualTo(subject);
+            assertThat(requestBody.get("htmlContent")).isEqualTo("<html>Email content</html>");
         }
 
         @Test
         @DisplayName("Devrait utiliser le template par défaut si null")
-        void shouldUseDefaultTemplateWhenNull() throws MessagingException {
+        void shouldUseDefaultTemplateWhenNull() {
             // Given
             String to = "test@example.com";
             String username = "John Doe";
@@ -100,45 +143,50 @@ class EmailServiceTest {
 
             given(templateEngine.process(eq("confirm-email"), any(Context.class)))
                     .willReturn("<html>Default template</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail(to, username, null, confirmationUrl, activationCode, subject);
 
             // Then
             then(templateEngine).should().process(eq("confirm-email"), any(Context.class));
-            then(mailSender).should().send(mimeMessage);
+            then(restTemplate).should().postForEntity(
+                eq("https://api.brevo.com/v3/smtp/email"),
+                any(HttpEntity.class),
+                eq(String.class)
+            );
         }
 
-        @Disabled("Test complexe avec mock JavaMailSender - Non critique")
         @Test
-        @DisplayName("Devrait propager MessagingException en cas d'erreur")
-        void shouldPropagateMessagingException() {
+        @DisplayName("Devrait propager RestClientException en cas d'erreur API")
+        void shouldPropagateRestClientException() {
             // Given
             String to = "invalid@example.com";
             
             given(templateEngine.process(anyString(), any(Context.class)))
                     .willReturn("<html>Content</html>");
-            willThrow(new MessagingException("SMTP connection failed"))
-                    .given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willThrow(new RestClientException("API connection failed"));
 
             // When / Then
             assertThatThrownBy(() -> 
                 emailService.sendEmail(to, "User", EmailTemplateName.ACTIVATE_ACCOUNT, 
                     "url", "code", "subject"))
-                    .isInstanceOf(MessagingException.class)
-                    .hasMessageContaining("SMTP connection failed");
+                    .isInstanceOf(RestClientException.class)
+                    .hasMessageContaining("API connection failed");
         }
 
         @Test
         @DisplayName("Devrait gérer template FORGOT_PASSWORD")
-        void shouldHandleForgotPasswordTemplate() throws MessagingException {
+        void shouldHandleForgotPasswordTemplate() {
             // Given
             EmailTemplateName template = EmailTemplateName.FORGOT_PASSWORD;
             
             given(templateEngine.process(eq("forgot_password"), any(Context.class)))
                     .willReturn("<html>Reset password</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail("user@test.com", "User", template, 
@@ -146,17 +194,19 @@ class EmailServiceTest {
 
             // Then
             then(templateEngine).should().process(eq("forgot_password"), any(Context.class));
+            then(restTemplate).should().postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
         }
 
         @Test
         @DisplayName("Devrait gérer template SET_PASSWORD")
-        void shouldHandleSetPasswordTemplate() throws MessagingException {
+        void shouldHandleSetPasswordTemplate() {
             // Given
             EmailTemplateName template = EmailTemplateName.SET_PASSWORD;
             
             given(templateEngine.process(eq("set_password"), any(Context.class)))
                     .willReturn("<html>Set password</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail("new@test.com", "New User", template, 
@@ -164,11 +214,12 @@ class EmailServiceTest {
 
             // Then
             then(templateEngine).should().process(eq("set_password"), any(Context.class));
+            then(restTemplate).should().postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
         }
 
         @Test
         @DisplayName("Devrait inclure tous les paramètres dans le modèle")
-        void shouldIncludeAllParametersInModel() throws MessagingException {
+        void shouldIncludeAllParametersInModel() {
             // Given
             String username = "Test User";
             String confirmationUrl = "http://test.com/confirm";
@@ -176,7 +227,8 @@ class EmailServiceTest {
 
             given(templateEngine.process(anyString(), any(Context.class)))
                     .willReturn("<html>Test</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail("test@test.com", username, null, 
@@ -199,11 +251,12 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Devrait gérer username null")
-        void shouldHandleNullUsername() throws MessagingException {
+        void shouldHandleNullUsername() {
             // Given
             given(templateEngine.process(anyString(), any(Context.class)))
                     .willReturn("<html>Test</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail("test@test.com", null, EmailTemplateName.ACTIVATE_ACCOUNT, 
@@ -215,15 +268,19 @@ class EmailServiceTest {
             
             Context context = contextCaptor.getValue();
             assertThat(context.getVariable("username")).isNull();
+            
+            // Vérifier que l'email est quand même envoyé
+            then(restTemplate).should().postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
         }
 
         @Test
         @DisplayName("Devrait gérer confirmationUrl vide")
-        void shouldHandleEmptyConfirmationUrl() throws MessagingException {
+        void shouldHandleEmptyConfirmationUrl() {
             // Given
             given(templateEngine.process(anyString(), any(Context.class)))
                     .willReturn("<html>Test</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail("test@test.com", "User", EmailTemplateName.ACTIVATE_ACCOUNT, 
@@ -239,11 +296,12 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Devrait gérer activationCode null")
-        void shouldHandleNullActivationCode() throws MessagingException {
+        void shouldHandleNullActivationCode() {
             // Given
             given(templateEngine.process(anyString(), any(Context.class)))
                     .willReturn("<html>Test</html>");
-            willDoNothing().given(mailSender).send(mimeMessage);
+            given(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+                    .willReturn(new ResponseEntity<>("Success", HttpStatus.OK));
 
             // When
             emailService.sendEmail("test@test.com", "User", EmailTemplateName.ACTIVATE_ACCOUNT, 
@@ -264,8 +322,8 @@ class EmailServiceTest {
      *   de manière asynchrone en production.
      * - Dans les tests unitaires, sans contexte Spring, l'annotation @Async n'a aucun effet
      *   et la méthode s'exécute de manière synchrone.
-     * - Les interactions avec JavaMailSender et SpringTemplateEngine sont mockées car
-     *   ce sont des dépendances externes (frameworks).
+     * - Les interactions avec RestTemplate (API Brevo) et SpringTemplateEngine sont mockées car
+     *   ce sont des dépendances externes (API REST et framework).
      * - Couverture: 100% de la logique métier testée.
      */
 }
