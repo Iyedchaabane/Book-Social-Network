@@ -44,15 +44,22 @@ jobs:
         with:
           node-version: '20'
       
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      
       - name: Cache Maven packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       
       - name: Cache npm packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -66,7 +73,7 @@ jobs:
       - name: Build Angular Frontend
         run: |
           cd book-network-ui
-          npm install
+          npm ci
           npm run build
       
       - name: Run Angular Tests with Coverage
@@ -76,15 +83,6 @@ jobs:
         continue-on-error: true
       
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=Iyedchaabane_Book-Social-Network
-            -Dsonar.projectName=Book-Social-Network
-            -Dsonar.sources=book-network/src/main,book-network-ui/src
-            -Dsonar.exclusions=**/*Test.java,**/test/**,**/dist/**,**/node_modules/**,**/coverage/**,**/*.spec.ts
-            -Dsonar.java.binaries=book-network/target/classes
-            -Dsonar.typescript.lcov.reportPaths=book-network-ui/coverage/lcov.info
