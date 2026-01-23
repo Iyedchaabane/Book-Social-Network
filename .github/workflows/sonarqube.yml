@@ -11,6 +11,7 @@ on:
       - docker/**
       - docker-compose.yml
       - .github/workflows/**.yml
+      - sonar-project.properties
 
   pull_request:
     branches:
@@ -22,6 +23,7 @@ on:
       - docker/**
       - docker-compose.yml
       - .github/workflows/**.yml
+      - sonar-project.properties
 
 jobs:
   sonarcloud:
