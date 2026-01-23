@@ -1,0 +1,90 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - CI/Pipeline
+    paths:
+      - book-network/**
+      - book-network-ui/**
+      - docker/**
+      - docker-compose.yml
+      - .github/workflows/**.yml
+      - sonar-project.properties
+
+  pull_request:
+    branches:
+      - main
+      - CI/Pipeline
+    paths:
+      - book-network/**
+      - book-network-ui/**
+      - docker/**
+      - docker-compose.yml
+      - .github/workflows/**.yml
+      - sonar-project.properties
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      
+      - name: Cache npm packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node
+      
+      - name: Build Spring Boot Backend
+        run: |
+          cd book-network
+          mvn clean verify -DskipITs
+      
+      - name: Build Angular Frontend
+        run: |
+          cd book-network-ui
+          npm ci
+          npm run build
+      
+      - name: Run Angular Tests with Coverage
+        run: |
+          cd book-network-ui
+          npm run test -- --code-coverage --watch=false
+        continue-on-error: true
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
