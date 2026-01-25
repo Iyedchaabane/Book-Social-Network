@@ -4,7 +4,10 @@ on:
   pull_request:
     paths-ignore:
       - 'book-network/**'
+      - 'book-network-ui/**'
       - 'docker/backend/**'
+      - 'docker/frontend/**'
+      - 'docker-compose.yml'
       - '.github/workflows/pipeline-backend.yml'
       - '.github/workflows/pipeline-frontend.yml'
 
