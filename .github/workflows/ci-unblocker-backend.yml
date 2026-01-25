@@ -1,0 +1,15 @@
+name: Backend Unblocker
+on:
+  pull_request:
+    paths-ignore:
+      - 'book-network/**'
+      - 'docker/backend/**'
+      - '.github/workflows/pipeline-backend.yml'
+
+jobs:
+  unblock-backend:
+    runs-on: ubuntu-latest
+    name: Unit tests
+    steps:
+      - name: Skip Backend Tests
+        run: echo "No backend changes detected. Skipping backend checks."
