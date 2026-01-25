@@ -1,0 +1,15 @@
+name: Frontend Unblocker
+on:
+  pull_request:
+    paths-ignore:
+      - 'book-network-ui/**'
+      - 'docker/frontend/**'
+      - '.github/workflows/pipeline-frontend.yml'
+
+jobs:
+  unblock-frontend:
+    runs-on: ubuntu-latest
+    name: Build and test
+    steps:
+      - name: Skip Frontend Tests
+        run: echo "No frontend changes detected. Skipping frontend checks."
