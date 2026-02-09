@@ -55,7 +55,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/v1234567890/test-folder/test.jpg");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -77,7 +76,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/v1234567890/book-network/users/1/test.jpg");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -99,7 +97,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/v1234567890/test-folder/file");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("file_without_extension");
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -120,7 +117,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/v1234567890/test-folder/file.test.jpg");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("my.file.test.jpg");
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -141,7 +137,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/v1234567890/test-folder/file");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn(null);
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -162,7 +157,6 @@ class CloudinaryServiceTest {
     void shouldReturnNullOnUploadFailure() throws IOException {
         // Given
         given(mockFile.getBytes()).willThrow(new IOException("Upload failed"));
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
 
         // When
         String result = cloudinaryService.uploadUserFile(mockFile, 1);
@@ -176,7 +170,6 @@ class CloudinaryServiceTest {
     void shouldHandleCloudinaryUploadException() throws IOException {
         // Given
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
         given(uploader.upload(any(byte[].class), any())).willThrow(new IOException("Cloudinary API error"));
 
         // When
@@ -354,7 +347,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/test.jpg");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -378,7 +370,6 @@ class CloudinaryServiceTest {
         uploadResult.put("secure_url", "https://res.cloudinary.com/demo/image/upload/test.jpg");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
         // When
@@ -400,7 +391,6 @@ class CloudinaryServiceTest {
         uploadResult2.put("secure_url", "https://res.cloudinary.com/demo/image/upload/file2.jpg");
 
         given(mockFile.getBytes()).willReturn("test content".getBytes());
-        given(mockFile.getOriginalFilename()).willReturn("test.jpg");
         given(uploader.upload(any(byte[].class), any()))
                 .willReturn(uploadResult1)
                 .willReturn(uploadResult2);
