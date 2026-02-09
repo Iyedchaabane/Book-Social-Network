@@ -31,7 +31,7 @@ public class CloudinaryService {
             String publicId = generatePublicId(file.getOriginalFilename());
 
             // Upload to Cloudinary
-            Map uploadResult = cloudinary.uploader().upload(
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
                     file.getBytes(),
                     ObjectUtils.asMap(
                             "folder", folder,
@@ -84,7 +84,7 @@ public class CloudinaryService {
             // Extract public ID from URL
             String publicId = extractPublicId(imageUrl);
             if (publicId != null) {
-                Map result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
                 log.info("File deleted from Cloudinary: {}", publicId);
             }
         } catch (IOException e) {
