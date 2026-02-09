@@ -47,7 +47,8 @@ application:
   mailing:
     frontend:
       activation-url: ${FRONTEND_URL}/activate-account?context=activation
-      reset-password-url: ${FRONTEND_URL}/reset-password?context=reset
+      reset-url: ${FRONTEND_URL}/reset-password?context=reset
+      add-url: ${FRONTEND_URL}/add-password
   file:
     storage:
       type: cloudinary # Always use cloudinary in production
