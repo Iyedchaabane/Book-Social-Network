@@ -20,6 +20,12 @@ brevo:
   sender-email: ${BREVO_SENDER_EMAIL}
   sender-name: ${BREVO_SENDER_NAME}
 
+# Cloudinary configuration (for development)
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
 application:
   security:
     jwt:
@@ -31,7 +37,7 @@ application:
       reset-url: http://localhost:4200/activate-account?context=reset
       add-url: http://localhost:4200/add-password
   file:
-    upload:
-      photos-output-path: ./uploads
+    storage:
+      type: cloudinary
 server:
   port: 8088
