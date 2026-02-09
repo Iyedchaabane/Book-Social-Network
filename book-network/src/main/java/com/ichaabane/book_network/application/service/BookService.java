@@ -277,14 +277,20 @@ public class BookService {
                 .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
         User user = ((User) connectedUser.getPrincipal());
 
-        // Delete old cover if exists
+        // Upload new cover to Cloudinary first
+        String coverUrl = cloudinaryService.uploadUserFile(file, user.getId());
+        
+        // Verify upload was successful
+        if (coverUrl == null || coverUrl.isEmpty()) {
+            throw new OperationNotPermittedException("Failed to upload book cover");
+        }
+        
+        log.info("New cover uploaded: {}", coverUrl);
+
+        // Only delete old cover after successful upload
         if (book.getBookCover() != null) {
             cloudinaryService.deleteFile(book.getBookCover());
         }
-
-        // Upload new cover to Cloudinary
-        String coverUrl = cloudinaryService.uploadUserFile(file, user.getId());
-        log.info("New cover uploaded: {}", coverUrl);
 
         book.setBookCover(coverUrl);
         bookRepository.save(book);

@@ -94,13 +94,10 @@ public class CloudinaryService {
 
     /**
      * Generate unique public ID for file
+     * Note: No extension is appended as Cloudinary handles file types automatically with "resource_type":"auto"
      */
     private String generatePublicId(String originalFilename) {
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        return UUID.randomUUID().toString() + "-" + System.currentTimeMillis() + extension;
+        return UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
     }
 
     /**
