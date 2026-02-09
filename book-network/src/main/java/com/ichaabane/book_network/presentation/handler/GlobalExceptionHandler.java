@@ -3,6 +3,7 @@ package com.ichaabane.book_network.presentation.handler;
 
 import com.ichaabane.book_network.domain.exception.*;
 import jakarta.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -18,6 +19,7 @@ import static com.ichaabane.book_network.presentation.handler.BusinessErrorCodes
 import static com.ichaabane.book_network.presentation.handler.BusinessErrorCodes.ACCOUNT_LOCKED;
 import static org.springframework.http.HttpStatus.*;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -115,7 +117,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleException(Exception exp) {
-        exp.printStackTrace();
+        // Use proper logging instead of printStackTrace for production
+        log.error("Unexpected error occurred", exp);
         return ResponseEntity
                 .status(INTERNAL_SERVER_ERROR)
                 .body(

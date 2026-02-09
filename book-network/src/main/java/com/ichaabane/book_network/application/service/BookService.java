@@ -6,12 +6,10 @@ import com.ichaabane.book_network.application.dto.response.BorrowedBookResponse;
 import com.ichaabane.book_network.application.dto.response.PageResponse;
 import com.ichaabane.book_network.application.mapper.BookMapper;
 import com.ichaabane.book_network.domain.exception.OperationNotPermittedException;
-import com.ichaabane.book_network.application.service.FileStorageService;
 import com.ichaabane.book_network.domain.model.Book;
 import com.ichaabane.book_network.domain.model.BookTransactionHistory;
 import com.ichaabane.book_network.domain.repository.BookRepository;
 import com.ichaabane.book_network.domain.repository.BookTransactionHistoryRepository;
-import com.ichaabane.book_network.application.service.NotificationService;
 import com.ichaabane.book_network.domain.model.BookReservation;
 import com.ichaabane.book_network.domain.repository.BookReservationRepository;
 import com.ichaabane.book_network.domain.model.User;
@@ -46,7 +44,7 @@ public class BookService {
     private final BookTransactionHistoryRepository transactionHistoryRepository;
     private final BookMapper bookMapper;
     private final BookTransactionHistoryRepository bookTransactionHistoryRepository;
-    private final FileStorageService fileStorageService;
+    private final CloudinaryService cloudinaryService;
     private final NotificationService notificationService;
     private final BookReservationRepository reservationRepository;
 
@@ -276,11 +274,25 @@ public class BookService {
         if (file == null || file.isEmpty()) return;
 
         Book book = bookRepository.findById(bookId)
-            .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
+                .orElseThrow(() -> new EntityNotFoundException(NO_BOOK_FOUND_PREFIX + bookId));
         User user = ((User) connectedUser.getPrincipal());
-        var bookCover = fileStorageService.saveFile(file, user.getId());
-        log.info(bookCover);
-        book.setBookCover(bookCover);
+
+        // Upload new cover to Cloudinary first
+        String coverUrl = cloudinaryService.uploadUserFile(file, user.getId());
+        
+        // Verify upload was successful
+        if (coverUrl == null || coverUrl.isEmpty()) {
+            throw new OperationNotPermittedException("Failed to upload book cover");
+        }
+        
+        log.info("New cover uploaded: {}", coverUrl);
+
+        // Only delete old cover after successful upload
+        if (book.getBookCover() != null) {
+            cloudinaryService.deleteFile(book.getBookCover());
+        }
+
+        book.setBookCover(coverUrl);
         bookRepository.save(book);
     }
 

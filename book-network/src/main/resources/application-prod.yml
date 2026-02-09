@@ -32,6 +32,12 @@ brevo:
   sender-email: ${BREVO_SENDER_EMAIL}
   sender-name: ${BREVO_SENDER_NAME}
 
+# Cloudinary configuration
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
 # Application-specific configuration
 application:
   security:
@@ -43,6 +49,8 @@ application:
       activation-url: ${FRONTEND_URL}/activate-account?context=activation
       reset-password-url: ${FRONTEND_URL}/reset-password?context=reset
   file:
+    storage:
+      type: cloudinary # Always use cloudinary in production
     upload:
       photos-output-path: ${FILE_UPLOAD_PATH:/tmp/uploads}
 

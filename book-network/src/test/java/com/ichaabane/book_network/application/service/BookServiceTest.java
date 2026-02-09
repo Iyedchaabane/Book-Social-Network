@@ -54,7 +54,7 @@ class BookServiceTest {
     private BookMapper bookMapper;
 
     @Mock
-    private FileStorageService fileStorageService;
+    private CloudinaryService cloudinaryService;
 
     @Mock
     private NotificationService notificationService;
@@ -704,7 +704,7 @@ class BookServiceTest {
             given(authentication.getPrincipal()).willReturn(owner);
             given(mockFile.isEmpty()).willReturn(false);
             given(bookRepository.findById(1)).willReturn(Optional.of(testBook));
-            given(fileStorageService.saveFile(mockFile, 1)).willReturn("/path/to/cover.jpg");
+            given(cloudinaryService.uploadUserFile(mockFile, 1)).willReturn("/path/to/cover.jpg");
             given(bookRepository.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
 
             // When
@@ -723,7 +723,7 @@ class BookServiceTest {
 
             // Then
             then(bookRepository).should(never()).findById(anyInt());
-            then(fileStorageService).should(never()).saveFile(any(), anyInt());
+            then(cloudinaryService).should(never()).uploadUserFile(any(), anyInt());
         }
 
         @Test
@@ -737,7 +737,7 @@ class BookServiceTest {
 
             // Then
             then(bookRepository).should(never()).findById(anyInt());
-            then(fileStorageService).should(never()).saveFile(any(), anyInt());
+            then(cloudinaryService).should(never()).uploadUserFile(any(), anyInt());
         }
 
         @Test
