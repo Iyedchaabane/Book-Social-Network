@@ -56,7 +56,7 @@ class BookMapperTest {
                 .archived(false)
                 .shareable(true)
                 .owner(owner)
-                .bookCover("covers/clean-code.jpg")
+                .bookCover("https://res.cloudinary.com/demo/image/upload/v1234567890/book-network/users/1/clean-code.jpg")
                 .feedbacks(List.of()) // Liste vide de feedbacks
                 .build();
 
@@ -170,60 +170,45 @@ class BookMapperTest {
         @Test
         @DisplayName("Devrait mapper correctement tous les champs du Book")
         void shouldMapAllFieldsFromBook() {
-            // Given
-            byte[] coverBytes = "coverImageData".getBytes();
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation("covers/clean-code.jpg"))
-                        .thenReturn(coverBytes);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
-
-                // Then
-                assertThat(result).isNotNull();
-                assertThat(result.getId()).isEqualTo(1);
-                assertThat(result.getTitle()).isEqualTo("Clean Code");
-                assertThat(result.getAuthorName()).isEqualTo("Robert C. Martin");
-                assertThat(result.getIsbn()).isEqualTo("978-0132350884");
-                assertThat(result.getSynopsis()).isEqualTo("A handbook of agile software craftsmanship");
-                assertThat(result.isArchived()).isFalse();
-                assertThat(result.isShareable()).isTrue();
-                assertThat(result.getRate()).isEqualTo(0.0); // Pas de feedbacks = rate 0.0
-                assertThat(result.getOwner()).isEqualTo("John Doe");
-                assertThat(result.getCover()).isEqualTo(coverBytes);
-            }
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(1);
+            assertThat(result.getTitle()).isEqualTo("Clean Code");
+            assertThat(result.getAuthorName()).isEqualTo("Robert C. Martin");
+            assertThat(result.getIsbn()).isEqualTo("978-0132350884");
+            assertThat(result.getSynopsis()).isEqualTo("A handbook of agile software craftsmanship");
+            assertThat(result.isArchived()).isFalse();
+            assertThat(result.isShareable()).isTrue();
+            assertThat(result.getRate()).isEqualTo(0.0); // Pas de feedbacks = rate 0.0
+            assertThat(result.getOwner()).isEqualTo("John Doe");
+            // With Cloudinary, cover is now a URL string, not byte array
+            assertThat(result.getCover()).isEqualTo("https://res.cloudinary.com/demo/image/upload/v1234567890/book-network/users/1/clean-code.jpg");
         }
 
         @Test
         @DisplayName("Devrait mapper le nom complet du propriétaire")
         void shouldMapOwnerFullName() {
-            // Given
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
-
-                // Then
-                assertThat(result.getOwner()).isEqualTo("John Doe");
-            }
+            // Then
+            assertThat(result.getOwner()).isEqualTo("John Doe");
         }
 
         @Test
-        @DisplayName("Devrait appeler FileUtils pour lire la couverture")
-        void shouldCallFileUtilsToReadCover() {
-            // Given
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation("covers/clean-code.jpg"))
-                        .thenReturn(new byte[0]);
+        @DisplayName("Devrait retourner l'URL Cloudinary comme couverture")
+        void shouldReturnCloudinaryUrlAsCover() {
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // When
-                bookMapper.toBookResponse(testBook);
-
-                // Then
-                fileUtilsMock.verify(() -> FileUtils.readFileFromLocation("covers/clean-code.jpg"));
-            }
+            // Then
+            // With Cloudinary integration, cover is now the URL string
+            assertThat(result.getCover()).isNotNull();
+            assertThat(result.getCover()).isInstanceOf(String.class);
+            assertThat(result.getCover().toString()).contains("cloudinary.com");
         }
 
         @Test
@@ -231,16 +216,12 @@ class BookMapperTest {
         void shouldHandleArchivedBook() {
             // Given
             testBook.setArchived(true);
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // Then
-                assertThat(result.isArchived()).isTrue();
-            }
+            // Then
+            assertThat(result.isArchived()).isTrue();
         }
 
         @Test
@@ -248,32 +229,22 @@ class BookMapperTest {
         void shouldHandleBookWithoutCover() {
             // Given
             testBook.setBookCover(null);
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(null))
-                        .thenReturn(null);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // Then
-                assertThat(result.getCover()).isNull();
-            }
+            // Then
+            assertThat(result.getCover()).isNull();
         }
 
         @Test
         @DisplayName("Devrait gérer un livre sans note (pas de feedbacks)")
         void shouldHandleBookWithoutRate() {
-            // Given - testBook n'a pas de feedbacks
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
-
-                // Then - Le rate est 0.0 car pas de feedbacks
-                assertThat(result.getRate()).isEqualTo(0.0);
-            }
+            // Then - Le rate est 0.0 car pas de feedbacks
+            assertThat(result.getRate()).isEqualTo(0.0);
         }
     }
 
@@ -370,57 +341,39 @@ class BookMapperTest {
         @Test
         @DisplayName("Devrait mapper correctement la réservation de livre")
         void shouldMapReservationCorrectly() {
-            // Given
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
+            // When
+            BookResponse result = bookMapper.toReservationBookResponse(reservation);
 
-                // When
-                BookResponse result = bookMapper.toReservationBookResponse(reservation);
-
-                // Then
-                assertThat(result).isNotNull();
-                assertThat(result.getId()).isEqualTo(1);
-                assertThat(result.getTitle()).isEqualTo("Clean Code");
-                assertThat(result.getAuthorName()).isEqualTo("Robert C. Martin");
-                assertThat(result.getIsbn()).isEqualTo("978-0132350884");
-                assertThat(result.getOwner()).isEqualTo("John Doe");
-            }
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(1);
+            assertThat(result.getTitle()).isEqualTo("Clean Code");
+            assertThat(result.getAuthorName()).isEqualTo("Robert C. Martin");
+            assertThat(result.getIsbn()).isEqualTo("978-0132350884");
+            assertThat(result.getOwner()).isEqualTo("John Doe");
         }
 
         @Test
         @DisplayName("Devrait utiliser toBookResponse pour la conversion")
         void shouldUsesToBookResponseForConversion() {
-            // Given
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
+            // When
+            BookResponse result = bookMapper.toReservationBookResponse(reservation);
 
-                // When
-                BookResponse result = bookMapper.toReservationBookResponse(reservation);
-
-                // Then
-                // Vérifie que les mêmes champs sont mappés que dans toBookResponse
-                assertThat(result.isShareable()).isEqualTo(testBook.isShareable());
-                assertThat(result.isArchived()).isEqualTo(testBook.isArchived());
-            }
+            // Then
+            // Vérifie que les mêmes champs sont mappés que dans toBookResponse
+            assertThat(result.isShareable()).isEqualTo(testBook.isShareable());
+            assertThat(result.isArchived()).isEqualTo(testBook.isArchived());
         }
 
         @Test
         @DisplayName("Devrait extraire le livre de la réservation")
         void shouldExtractBookFromReservation() {
-            // Given
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
+            // When
+            BookResponse result = bookMapper.toReservationBookResponse(reservation);
 
-                // When
-                BookResponse result = bookMapper.toReservationBookResponse(reservation);
-
-                // Then
-                assertThat(result.getId()).isEqualTo(reservation.getBook().getId());
-                assertThat(result.getTitle()).isEqualTo(reservation.getBook().getTitle());
-            }
+            // Then
+            assertThat(result.getId()).isEqualTo(reservation.getBook().getId());
+            assertThat(result.getTitle()).isEqualTo(reservation.getBook().getTitle());
         }
     }
 
@@ -471,17 +424,12 @@ class BookMapperTest {
             Feedback feedback1 = Feedback.builder().note(4.0).build();
             Feedback feedback2 = Feedback.builder().note(5.0).build();
             testBook.setFeedbacks(List.of(feedback1, feedback2));
-            
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(any()))
-                        .thenReturn(new byte[0]);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // Then - Le rate est la moyenne: (4.0 + 5.0) / 2 = 4.5
-                assertThat(result.getRate()).isEqualTo(4.5);
-            }
+            // Then - Le rate est la moyenne: (4.0 + 5.0) / 2 = 4.5
+            assertThat(result.getRate()).isEqualTo(4.5);
         }
         
         @Test
@@ -489,16 +437,12 @@ class BookMapperTest {
         void shouldHandleBookWithoutCover() {
             // Given
             testBook.setBookCover(null);
-            try (MockedStatic<FileUtils> fileUtilsMock = mockStatic(FileUtils.class)) {
-                fileUtilsMock.when(() -> FileUtils.readFileFromLocation(null))
-                        .thenReturn(null);
 
-                // When
-                BookResponse result = bookMapper.toBookResponse(testBook);
+            // When
+            BookResponse result = bookMapper.toBookResponse(testBook);
 
-                // Then
-                assertThat(result.getCover()).isNull();
-            }
+            // Then
+            assertThat(result.getCover()).isNull();
         }
     }
 }
