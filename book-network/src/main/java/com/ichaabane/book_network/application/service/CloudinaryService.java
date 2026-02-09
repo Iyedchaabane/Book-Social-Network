@@ -28,7 +28,7 @@ public class CloudinaryService {
     public String uploadFile(MultipartFile file, String folder) {
         try {
             // Generate unique public ID
-            String publicId = generatePublicId(file.getOriginalFilename());
+            String publicId = generatePublicId();
 
             // Upload to Cloudinary
             Map<String, Object> uploadResult = cloudinary.uploader().upload(
@@ -96,7 +96,7 @@ public class CloudinaryService {
      * Generate unique public ID for file
      * Note: No extension is appended as Cloudinary handles file types automatically with "resource_type":"auto"
      */
-    private String generatePublicId(String originalFilename) {
+    private String generatePublicId() {
         return UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
     }
 
