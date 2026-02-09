@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CloudinaryService - Comprehensive Tests")
@@ -271,20 +273,17 @@ class CloudinaryServiceTest {
     }
 
     @Test
-    @DisplayName("Should extract public ID from URL without version")
-    void shouldExtractPublicIdWithoutVersion() throws IOException {
+    @DisplayName("Should not delete file when URL has no version token")
+    void shouldNotDeleteFileWithoutVersion() throws IOException {
         // Given
         String imageUrl = "https://res.cloudinary.com/demo/image/upload/folder/subfolder/file.jpg";
-        Map<String, Object> deleteResult = new HashMap<>();
-        deleteResult.put("result", "ok");
-
-        given(uploader.destroy(eq("folder/subfolder/file"), any())).willReturn(deleteResult);
 
         // When
         cloudinaryService.deleteFile(imageUrl);
 
         // Then
-        verify(uploader).destroy(eq("folder/subfolder/file"), any());
+        // Should not call destroy when there's no version token (returns null)
+        verify(uploader, never()).destroy(any(), any());
     }
 
     @Test
@@ -349,12 +348,15 @@ class CloudinaryServiceTest {
         given(mockFile.getBytes()).willReturn("test content".getBytes());
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
+        ArgumentCaptor<Map<String, Object>> optionsCaptor = ArgumentCaptor.forClass(Map.class);
+
         // When
         cloudinaryService.uploadUserFile(mockFile, userId);
 
         // Then
-        verify(uploader).upload(any(byte[].class), any());
-        // The folder should be "book-network/users/42" - verified in the service implementation
+        verify(uploader).upload(any(byte[].class), optionsCaptor.capture());
+        Map<String, Object> capturedOptions = optionsCaptor.getValue();
+        assertThat(capturedOptions.get("folder")).isEqualTo("book-network/users/42");
     }
 
     // ===========================
@@ -372,12 +374,19 @@ class CloudinaryServiceTest {
         given(mockFile.getBytes()).willReturn("test content".getBytes());
         given(uploader.upload(any(byte[].class), any())).willReturn(uploadResult);
 
+        ArgumentCaptor<Map<String, Object>> optionsCaptor = ArgumentCaptor.forClass(Map.class);
+
         // When
         cloudinaryService.uploadFile(mockFile, folder);
 
         // Then
-        verify(uploader).upload(any(byte[].class), any());
-        // Transformation parameters (width: 500, height: 700, quality: auto:good) are set in the service
+        verify(uploader).upload(any(byte[].class), optionsCaptor.capture());
+        Map<String, Object> capturedOptions = optionsCaptor.getValue();
+        
+        // Verify transformation parameters
+        Object transformation = capturedOptions.get("transformation");
+        assertThat(transformation).isNotNull();
+        assertThat(transformation).isInstanceOf(com.cloudinary.Transformation.class);
     }
 
     @Test
@@ -395,6 +404,8 @@ class CloudinaryServiceTest {
                 .willReturn(uploadResult1)
                 .willReturn(uploadResult2);
 
+        ArgumentCaptor<Map<String, Object>> optionsCaptor = ArgumentCaptor.forClass(Map.class);
+
         // When
         String result1 = cloudinaryService.uploadFile(mockFile, folder);
         String result2 = cloudinaryService.uploadFile(mockFile, folder);
@@ -402,7 +413,15 @@ class CloudinaryServiceTest {
         // Then
         assertThat(result1).isNotNull();
         assertThat(result2).isNotNull();
-        verify(uploader, times(2)).upload(any(byte[].class), any());
-        // Each upload should have a unique publicId due to UUID + timestamp
+        verify(uploader, times(2)).upload(any(byte[].class), optionsCaptor.capture());
+        
+        // Verify unique public IDs
+        var allCapturedOptions = optionsCaptor.getAllValues();
+        String publicId1 = (String) allCapturedOptions.get(0).get("public_id");
+        String publicId2 = (String) allCapturedOptions.get(1).get("public_id");
+        
+        assertThat(publicId1).isNotNull();
+        assertThat(publicId2).isNotNull();
+        assertThat(publicId1).isNotEqualTo(publicId2);
     }
 }

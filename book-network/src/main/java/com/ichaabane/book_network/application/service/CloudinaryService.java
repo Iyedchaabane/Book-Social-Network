@@ -116,9 +116,25 @@ public class CloudinaryService {
             // Get the part after "upload/"
             String afterUpload = parts[1];
 
-            // Remove version (v1234567890)
-            if (afterUpload.startsWith("v")) {
-                afterUpload = afterUpload.substring(afterUpload.indexOf("/") + 1);
+            // Find version token pattern: v followed by digits (e.g., v1234567890)
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("v\\d+");
+            java.util.regex.Matcher matcher = pattern.matcher(afterUpload);
+            
+            if (matcher.find()) {
+                // Extract everything after the version token
+                int versionEnd = matcher.end();
+                if (versionEnd < afterUpload.length()) {
+                    afterUpload = afterUpload.substring(versionEnd);
+                    
+                    // Strip leading "/"
+                    if (afterUpload.startsWith("/")) {
+                        afterUpload = afterUpload.substring(1);
+                    }
+                } else {
+                    return null; // No content after version token
+                }
+            } else {
+                return null; // No version token found
             }
 
             // Remove file extension
