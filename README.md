@@ -2,6 +2,14 @@
 
 A full-stack social network application for book lovers, built with Spring Boot (Backend) and Angular (Frontend).
 
+## 🎬 Video Demonstration
+
+Watch the Book Social Network application walkthrough on YouTube.
+
+[![Book Social Network video demo](https://img.youtube.com/vi/XEUTdd2zWk8/hqdefault.jpg)](https://www.youtube.com/watch?v=XEUTdd2zWk8)
+
+▶️ [Watch the full video demonstration](https://www.youtube.com/watch?v=XEUTdd2zWk8)
+
 ## Project Structure
 
 - **[book-network](./book-network)**: The backend API built with Java 17 and Spring Boot 3.
