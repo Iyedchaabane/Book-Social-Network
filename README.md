@@ -2,6 +2,22 @@
 
 A full-stack social network application for book lovers, built with Spring Boot (Backend) and Angular (Frontend).
 
+## 📸 Application Screenshots
+
+The screenshots below illustrate the book-sharing workflows. Image files are prepared for `docs/images/` and must be uploaded to this branch before merging the pull request.
+
+| Book Catalog | Book Management |
+|:---:|:---:|
+| ![Browse and search personal books](docs/images/book-catalog.webp) | ![Create or edit a book with cover upload](docs/images/book-management.webp) |
+
+| Borrowing & Returns | Book Borrowing |
+|:---:|:---:|
+| ![Returned and borrowed books](docs/images/borrowing-history.webp) | ![Borrowing confirmation and book cards](docs/images/borrowed-book.webp) |
+
+### Ratings & Feedback
+
+![Rate a borrowed book and leave feedback](docs/images/ratings-feedback.webp)
+
 ## 🎬 Video Demonstration
 
 Watch the Book Social Network application walkthrough on YouTube.
