@@ -8,15 +8,20 @@ The screenshots below illustrate the book-sharing workflows. Image files are pre
 
 | Book Catalog | Book Management |
 |:---:|:---:|
-| ![Browse and search personal books](docs/images/book-catalog.webp) | ![Create or edit a book with cover upload](docs/images/book-management.webp) |
+| ![Browse and search personal books](docs/images/book-catalog.jpeg
+) | ![Create or edit a book with cover upload](docs/images/book-management.jpeg
+) |
 
 | Borrowing & Returns | Book Borrowing |
 |:---:|:---:|
-| ![Returned and borrowed books](docs/images/borrowing-history.webp) | ![Borrowing confirmation and book cards](docs/images/borrowed-book.webp) |
+| ![Returned and borrowed books](docs/images/borrowing-history.jpeg
+) | ![Borrowing confirmation and book cards](docs/images/borrowed-book.jpeg
+) |
 
 ### Ratings & Feedback
 
-![Rate a borrowed book and leave feedback](docs/images/ratings-feedback.webp)
+![Rate a borrowed book and leave feedback](docs/images/ratings-feedback.jpeg
+)
 
 ## 🎬 Video Demonstration
 
